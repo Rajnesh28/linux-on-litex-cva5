@@ -44,10 +44,10 @@
 
                 
                 d-tlb-size = <128>;
-                d-tlb-sets = <128>;
+                d-tlb-sets = <2>;
 
                 i-tlb-size = <128>;
-                i-tlb-sets = <128>;
+                i-tlb-sets = <2>;
 
                 
                 L0: interrupt-controller {
