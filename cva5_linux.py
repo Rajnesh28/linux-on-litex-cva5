@@ -1,7 +1,3 @@
-#
-# This file is part of Linux-on-LiteX-CVA5
-#
-
 import json
 import argparse
 
@@ -15,7 +11,7 @@ from litex.build.sim.verilator import verilator_build_args, verilator_build_argd
 from litex.soc.interconnect.csr import *
 from litex.soc.integration.soc_core import *
 from litex.soc.integration.builder import *
-from litex.soc.interconnect import axi
+from litex.soc.interconnect import wishbone
 from litex.soc.cores.cpu.cva5 import CVA5
 
 from litedram import modules as litedram_modules
@@ -26,7 +22,6 @@ from litedram.core.controller import ControllerSettings
 from liteeth.phy.model import LiteEthPHYModel
 from liteeth.mac import LiteEthMAC
 
-from litex.tools.litex_json2dts_linux import generate_dts
 
 # IOs ----------------------------------------------------------------------------------------------
 
@@ -90,12 +85,11 @@ class SoCLinux(SoCCore):
             cpu_type                 = "cva5",
             cpu_variant              = "standard",
             integrated_rom_size      = 0x10000,
-            bus_standard             = "axi",
             uart_name                = "sim")
         self.add_config("DISABLE_DELAYS")
 
-        # Boot from OpenSBI.
-        self.add_constant("ROM_BOOT_ADDRESS", "demo.bin")
+        # # Boot from OpenSBI.
+        self.add_constant("ROM_BOOT_ADDRESS", 0x40f00000)
 
         # Supervisor -------------------------------------------------------------------------------
         self.submodules.supervisor = Supervisor()
@@ -121,14 +115,6 @@ class SoCLinux(SoCCore):
             l2_cache_size = 0)
         self.add_constant("SDRAM_TEST_DISABLE") # Skip SDRAM test to avoid corrupting pre-initialized contents.
 
-    def generate_dts(self, board_name):
-        return
-
-    def compile_dts(self, board_name):
-        dts = os.path.join("device_tree", "cva5_litex.dts")
-        dtb = os.path.join("images", "cva5_litex.dtb")
-        os.system("dtc -O dtb -o {} {}".format(dtb, dts))
-
 # Build --------------------------------------------------------------------------------------------
 
 def main():
@@ -144,25 +130,21 @@ def main():
     sim_config = SimConfig(default_clk="sys_clk")
     sim_config.add_module("serial2console", "serial")
 
-    for i in range(2):
-        soc = SoCLinux(
-            init_memories    = i!=0,
-            sdram_module     = args.sdram_module,
-            sdram_data_width = int(args.sdram_data_width),
-            sdram_verbosity  = int(args.sdram_verbosity)
-        )
-        board_name = "sim"
-        build_dir  = os.path.join("build", board_name)
-        builder = Builder(soc, output_dir=build_dir,
-            compile_gateware = i != 0 ,
-            csr_json         = os.path.join(build_dir, "csr.json"))
-        builder.build(sim_config=sim_config,
-            run = i != 0,
-            **verilator_build_kwargs
-        )
-        if i == 0:
-            soc.generate_dts(board_name)
-            soc.compile_dts(board_name)
+    soc = SoCLinux(
+        init_memories    = 0,
+        sdram_module     = args.sdram_module,
+        sdram_data_width = int(args.sdram_data_width),
+        sdram_verbosity  = int(args.sdram_verbosity)
+    )
+    board_name = "sim"
+    build_dir  = os.path.join("build", board_name)
+    builder = Builder(soc, output_dir=build_dir,
+        compile_gateware = 0 ,
+        csr_json         = os.path.join(build_dir, "csr.json"))
+    builder.build(sim_config=sim_config,
+        run = 1,
+        **verilator_build_kwargs
+    )
 
 if __name__ == "__main__":
     main()

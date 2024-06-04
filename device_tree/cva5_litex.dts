@@ -99,7 +99,6 @@
                 interrupts-extended = <
                     &L0 11 &L0 9>;
                 riscv,ndev = <32>;
-                
             };
 
             liteuart0: serial@f0001000 {
