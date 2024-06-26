@@ -7,7 +7,7 @@
 
 
         chosen {
-            bootargs = "console=liteuart earlycon=liteuart,0xf0001000 rootwait root=/dev/ram0";
+            bootargs = "console=liteuart earlycon=liteuart,0x82002000 rootwait root=/dev/ram0";
             linux,initrd-start = <0x41000000>;
             linux,initrd-end   = <0x41800000>;
         };
@@ -42,13 +42,11 @@
                 i-cache-sets = <2>;
                 i-cache-block-size = <64>;
 
-                
                 d-tlb-size = <128>;
-                d-tlb-sets = <128>;
+                d-tlb-sets = <2>;
 
                 i-tlb-size = <128>;
-                i-tlb-sets = <128>;
-
+                i-tlb-sets = <2>;
                 
                 L0: interrupt-controller {
                     #address-cells = <0>;
@@ -57,8 +55,6 @@
                     compatible = "riscv,cpu-intc";
                 };
             };
-
-            
         };
 
         memory: memory@40000000 {
@@ -74,7 +70,6 @@
             opensbi@40f00000 {
                 reg = <0x40f00000 0x80000>;
             };
-
         };
 
         soc {
@@ -84,37 +79,22 @@
             interrupt-parent = <&intc0>;
             ranges;
 
-            soc_ctrl0: soc_controller@f0000000 {
+            soc_ctrl0: soc_controller@0x82000000 {
                 compatible = "litex,soc-controller";
-                reg = <0xf0000000 0xc>;
+                reg = <0x82000000 0xc>;
                 status = "okay";
             };
 
-            intc0: interrupt-controller@f0c00000 {
-                compatible = "sifive,fu540-c000-plic", "sifive,plic-1.0.0";
-                reg = <0xf0c00000 0x400000>;
-                #address-cells = <0>;
-                #interrupt-cells = <1>;
-                interrupt-controller;
-                interrupts-extended = <
-                    &L0 11 &L0 9>;
-                riscv,ndev = <32>;
-                
-            };
-
-            liteuart0: serial@f0001000 {
+            liteuart0: serial@0x82002000 {
                 compatible = "litex,liteuart";
-                reg = <0xf0001000 0x100>;
+                reg = <0x82002000 0x100>;
                 interrupts = <0>;
                 status = "okay";
             };
-
         };
 
         aliases {
-
                 serial0 = &liteuart0;
-
         };
 
 };
